@@ -5,23 +5,37 @@ if (typeof chrome === "undefined") {
 
 // Always inject mock_code.js interceptor to handle extension detection (even when not logged in)
 (function injectMockCode() {
-  const mockScript = document.createElement('script');
-  mockScript.src = chrome.runtime.getURL('data/inject/mock_code.js');
+  const mockScript = document.createElement("script");
+  mockScript.src = chrome.runtime.getURL("data/inject/mock_code.js");
   mockScript.onload = function () {
-      console.log('✅ Mock code interceptor loaded');
-      this.remove(); // Clean up after execution
+    console.log("✅ Mock code interceptor loaded");
+    this.remove(); // Clean up after execution
   };
-  mockScript.onerror = function() {
-      console.error('❌ Failed to load mock code interceptor');
+  mockScript.onerror = function () {
+    console.error("❌ Failed to load mock code interceptor");
   };
   // Inject as early as possible
   (document.head || document.documentElement).prepend(mockScript);
 })();
 
 // Inject exam.js (no login required)
-const script = document.createElement('script');
-script.src = chrome.runtime.getURL('data/inject/exam.js');
+const script = document.createElement("script");
+script.src = chrome.runtime.getURL("data/inject/exam.js");
 (document.head || document.documentElement).appendChild(script);
+
+// Remove stale chat UI on non-exam pages after manifest changes/extension reload.
+const NEOPASS_EXAM_HOSTS = ["examly.io", "vit.ac.in", "codility.com", "hackerrank.com"];
+function isNeoPassExamHost() {
+  try {
+    const hostname = window.location.hostname;
+    return NEOPASS_EXAM_HOSTS.some((host) => hostname === host || hostname.endsWith(`.${host}`));
+  } catch {
+    return false;
+  }
+}
+if (!isNeoPassExamHost()) {
+  document.getElementById("chat-overlay-shadow-host")?.remove();
+}
 
 // Login prompt and status sync removed - extension features now available to all users
 
@@ -32,11 +46,11 @@ const neoBrowserDownloadLink = "https://freeneopass.vercel.app";
 
 // Function to add our NeoPass button left of the existing Neo Browser button
 function replaceNeoBrowserButton() {
-  const neoButton = document.querySelector('button#neobrowser');
+  const neoButton = document.querySelector("button#neobrowser");
 
   if (neoButton && !neoButton.dataset.replaced) {
     // Create custom styled button/link
-    const ourBtn = document.createElement('a');
+    const ourBtn = document.createElement("a");
     ourBtn.innerHTML = `
       <div class="container jcc btn-align">
         <div class="t-whitespace-nowrap ng-star-inserted">
@@ -69,7 +83,7 @@ function replaceNeoBrowserButton() {
     `;
 
     // Create gradient border effect
-    const beforeStyle = document.createElement('style');
+    const beforeStyle = document.createElement("style");
     beforeStyle.textContent = `
       a#neopass-browser-btn {
         position: relative !important;
@@ -82,8 +96,8 @@ function replaceNeoBrowserButton() {
         box-shadow: 0 0 20px rgba(139, 92, 246, 0.6) !important;
       }
     `;
-    if (!document.querySelector('style[data-neobrowser-style]')) {
-      beforeStyle.setAttribute('data-neobrowser-style', 'true');
+    if (!document.querySelector("style[data-neobrowser-style]")) {
+      beforeStyle.setAttribute("data-neobrowser-style", "true");
       document.head.appendChild(beforeStyle);
     }
 
@@ -100,7 +114,7 @@ function replaceNeoBrowserButton() {
 
     neoButton.dataset.replaced = "true";
 
-    console.log('✅ NeoPass NeoBrowser button added left of existing Neo Browser button');
+    console.log("✅ NeoPass NeoBrowser button added left of existing Neo Browser button");
   }
 }
 
@@ -110,41 +124,41 @@ const buttonObserver = new MutationObserver((mutations) => {
 });
 
 // Start observing for button changes
-buttonObserver.observe(document.body, { 
-  childList: true, 
-  subtree: true 
+buttonObserver.observe(document.body, {
+  childList: true,
+  subtree: true,
 });
 
 // Initial check for Neo Browser button (in case already loaded)
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', replaceNeoBrowserButton);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", replaceNeoBrowserButton);
 } else {
   replaceNeoBrowserButton();
 }
 
 // Listen for window messages
-window.addEventListener("message", function(event) {
+window.addEventListener("message", function (event) {
   // Only process messages that:
   // 1. Come from the same window
   // 2. Are targeted for the extension
   if (event.data.target === "extension") {
-      // Forward the message to the extension's background script
-      chrome.runtime.sendMessage(event.data.message, response => {
-          // Send the response back to the window
-          window.postMessage({
-              source: "extension",
-              response: response
-          }, "*");
-      });
+    // Forward the message to the extension's background script
+    chrome.runtime.sendMessage(event.data.message, (response) => {
+      // Send the response back to the window
+      window.postMessage(
+        {
+          source: "extension",
+          response: response,
+        },
+        "*",
+      );
+    });
   }
 });
 
 window.addEventListener("message", function (event) {
-
   if (event.source === window && event.data.target === "extension") {
-
     browser.runtime.sendMessage(event.data.message, (response) => {
-
       window.postMessage({ source: "extension", response: response }, "*");
     });
   }
@@ -173,7 +187,6 @@ function sendMessageToWebsite(messageData) {
 function removeInjectedElement() {
   const injectedElement = document.querySelector("[id^='x-template-base-']"); // Select elements with ID starting with "x-template-base-"
   if (injectedElement) {
-      injectedElement.remove(); // Remove the element if it exists
+    injectedElement.remove(); // Remove the element if it exists
   }
 }
-

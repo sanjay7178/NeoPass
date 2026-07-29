@@ -66,11 +66,20 @@
         "data/inject/isolated.js",
         "data/inject/content.js",
         "data/inject/main.js",
-        "data/inject/chatbot.js",
-        "data/lib/showdown.min.js",
         "contentScript.js"
       ],
       "exclude_matches": ["*://*.discord.com/*", "*://*.figma.com/*"]
+    },
+    {
+      "matches": [
+        "https://*.examly.io/*",
+        "https://examly.io/*",
+        "https://*.vit.ac.in/*",
+        "https://app.codility.com/*",
+        "https://*.hackerrank.com/*",
+        "https://www.hackerrank.com/*"
+      ],
+      "js": ["data/lib/showdown.min.js", "data/inject/chatbot.js"]
     },
     {
       "matches": ["<all_urls>"],
