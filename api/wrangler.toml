@@ -37,6 +37,21 @@ binding = "AI"
 binding = "USERS"
 id = "f178eb811bc74b24b611601b1b7c2514"
 
+[observability]
+enabled = false
+head_sampling_rate = 1
+
+[observability.logs]
+enabled = true
+head_sampling_rate = 1
+persist = true
+invocation_logs = true
+
+[observability.traces]
+enabled = false
+persist = true
+head_sampling_rate = 1
+
 # Secrets (set via wrangler secret put)
 # JWT_SECRET - Secret key for JWT token signing
 # ADMIN_API_KEY - Admin API key for management endpoints
