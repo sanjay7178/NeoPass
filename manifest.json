@@ -6,8 +6,9 @@
   "background": {
     "service_worker": "worker.js"
   },
-"web_accessible_resources": [{
-    "resources": [
+  "web_accessible_resources": [
+    {
+      "resources": [
         "devtools.js",
         "data/inject/anti-anti-debug.js",
         "data/inject/copyOverride.js",
@@ -22,14 +23,15 @@
         "data/inject/mock_code/minifiedBackground.js",
         "data/inject/mock_code/minifiedContent-script.js",
         "data/inject/mock_code/rules.json"
-    ],
-    "matches": ["http://*/*", "https://*/*"]
-}],
+      ],
+      "matches": ["http://*/*", "https://*/*"]
+    }
+  ],
   "permissions": [
     "management",
     "tabs",
     "activeTab",
-    "contextMenus",   
+    "contextMenus",
     "clipboardWrite",
     "clipboardRead",
     "storage",
@@ -41,13 +43,11 @@
     "alarms",
     "webRequest"
   ],
-  "host_permissions": [
-      "*://*/*"
-  ],
+  "host_permissions": ["*://*/*", "https://*.examly.io/*", "https://examly.io/*"],
   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAyXKMSllCpa1zHLw0m7CbO1iAsi0iwQ5Ij45LbZsuvVnmmL0ahjrv+Rfbks1gZ2rE3nqJCvbyT9VUNMGlW9a09BTlRzrm9RhqaAdN6Mg4Y1fEdwQ6fB/UZG5eGEHKUmilxZrkfgfqVwPauLyIYBxTTyIJcYBQvg4mY1WutMpliP2Xbyva2f+t8iiXDer1lvqprNSbFv15bkwz6G5TJxTmvfK/yWKZUqPuI14WPyeo4KO5OA6+5aXONWw6S62n0D8LbadlkQMJM/Tn24tKAjSST0WpIViOn/rNOd/p1lTlrtXD9NkF3jDLblo+H0UwuItl+qhZd2why9tuejHGKWnS/wIDAQAB",
   "externally_connectable": {
-     "matches": ["http://*/*", "https://*/*"]
-   },
+    "matches": ["http://*/*", "https://*/*"]
+  },
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -58,10 +58,7 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "https://*/*",
-        "http://*/*"
-      ],
+      "matches": ["https://*/*", "http://*/*", "https://*.examly.io/*", "https://examly.io/*"],
       "js": [
         "data/inject/copyOverride.js",
         "data/inject/customPaste.js",
@@ -73,49 +70,40 @@
         "data/lib/showdown.min.js",
         "contentScript.js"
       ],
-      "exclude_matches": [
-        "*://*.discord.com/*",
-        "*://*.figma.com/*"
-      ]
+      "exclude_matches": ["*://*.discord.com/*", "*://*.figma.com/*"]
     },
     {
-      "matches": [
-          "<all_urls>"
-      ],
+      "matches": ["<all_urls>"],
       "all_frames": true,
       "run_at": "document_start",
-      "js": [
-          "devtools.js"
-      ]
+      "js": ["devtools.js"]
     },
     {
       "js": ["data/inject/anti-anti-debug.js"],
       "run_at": "document_start",
       "all_frames": true,
-      "matchOriginAsFallback": true,
+      "match_origin_as_fallback": true,
       "world": "MAIN",
-      "matches": [
-        "<all_urls>"
-      ]
+      "matches": ["<all_urls>"]
     },
     {
       "js": ["data/inject/screenshare-bridge.js"],
       "run_at": "document_start",
       "all_frames": true,
-      "matchOriginAsFallback": true,
+      "match_origin_as_fallback": true,
       "matches": [
         "<all_urls>",
         "https://*.examly.io/*",
         "https://*.vit.ac.in/*",
         "https://app.codility.com/*"
       ],
-      "exclude_matches": ["https://*.examly.io/result*","https://*.vit.ac.in/result"]
+      "exclude_matches": ["https://*.examly.io/result*", "https://*.vit.ac.in/result"]
     },
     {
       "js": ["data/inject/screenshare.js"],
       "run_at": "document_start",
       "all_frames": true,
-      "matchOriginAsFallback": true,
+      "match_origin_as_fallback": true,
       "world": "MAIN",
       "matches": [
         "<all_urls>",
@@ -123,7 +111,7 @@
         "https://*.vit.ac.in/*",
         "https://app.codility.com/*"
       ],
-      "exclude_matches": ["https://*.examly.io/result*","https://*.vit.ac.in/result"]
+      "exclude_matches": ["https://*.examly.io/result*", "https://*.vit.ac.in/result"]
     }
   ],
   "commands": {

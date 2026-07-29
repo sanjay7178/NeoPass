@@ -1,155 +1,179 @@
 // Mac detection - only declare if not already declared
 let isMac;
-if (typeof isMac === 'undefined') {
-    isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 || 
-            navigator.userAgent.toUpperCase().indexOf('MAC') >= 0;
+if (typeof isMac === "undefined") {
+  isMac =
+    navigator.platform.toUpperCase().indexOf("MAC") >= 0 ||
+    navigator.userAgent.toUpperCase().indexOf("MAC") >= 0;
 }
 
 // Lists of events to intercept
 const windowEvents = [
-    "blur", 
-    "focus", 
-    "beforeunload", 
-    "pagehide", 
-    "unload", 
-    "popstate", 
-    "resize", 
-    "pagehide", 
-    'lostpointercapture', 
-    "fullscreenchange", 
-    "visibilitychange"
+  "blur",
+  "focus",
+  "beforeunload",
+  "pagehide",
+  "unload",
+  "popstate",
+  "resize",
+  "pagehide",
+  "lostpointercapture",
+  "fullscreenchange",
+  "visibilitychange",
 ];
 
-const documentEvents = [
-    "paste", 
-    "onpaste", 
-    "visibilitychange", 
-    "webkitvisibilitychange"
-];
+const documentEvents = ["paste", "onpaste", "visibilitychange", "webkitvisibilitychange"];
 
 // Store original property descriptors for restoration
-const originalVisibilityState = Object.getOwnPropertyDescriptor(document, 'visibilityState');
-const originalWebkitVisibilityState = Object.getOwnPropertyDescriptor(document, "webkitVisibilityState");
+const originalVisibilityState = Object.getOwnPropertyDescriptor(document, "visibilityState");
+const originalWebkitVisibilityState = Object.getOwnPropertyDescriptor(
+  document,
+  "webkitVisibilityState",
+);
 const originalHidden = Object.getOwnPropertyDescriptor(document, "hidden");
 
 // Event handler to prevent default behavior
 const eventHandler = (event) => {
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
+  event.preventDefault();
+  event.stopPropagation();
+  event.stopImmediatePropagation();
 };
 
 // Main function to bypass browser restrictions
 function bypassRestrictions() {
-    // Aggressively block beforeunload popup
-    const blockBeforeUnload = (e) => {
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        delete e['returnValue'];
-    };
-    
-    // Add our handler with highest priority (capture phase)
-    window.addEventListener('beforeunload', blockBeforeUnload, true);
-    
-    // Override addEventListener to block beforeunload handlers
-    const originalAddEventListener = EventTarget.prototype.addEventListener;
-    EventTarget.prototype.addEventListener = function(type, listener, options) {
-        if (type === 'beforeunload') {
-            return; // Completely ignore beforeunload listeners
-        }
-        return originalAddEventListener.call(this, type, listener, options);
-    };
-    
-    // Override onbeforeunload property setter
-    Object.defineProperty(window, 'onbeforeunload', {
-        set: function(val) {
-            // Silently ignore attempts to set onbeforeunload
-        },
-        get: function() {
-            return null;
-        },
-        configurable: false
-    });
-    
-    // Prevent window events from firing
-    windowEvents.forEach(eventName => {
-        // Skip unload and beforeunload events
-        if (eventName !== 'unload' && eventName !== 'beforeunload') {
-            window.addEventListener(eventName, eventHandler, true);
-        }
-    });
+  // Aggressively block beforeunload popup
+  const blockBeforeUnload = (e) => {
+    e.stopPropagation();
+    e.stopImmediatePropagation();
+    delete e["returnValue"];
+  };
 
-    // Prevent document events from firing
-    documentEvents.forEach(eventName => {
-        document.addEventListener(eventName, eventHandler, true);
-    });
+  // Add our handler with highest priority (capture phase)
+  window.addEventListener("beforeunload", blockBeforeUnload, true);
 
-    // Override visibility state properties
-    Object.defineProperty(document, "visibilityState", {
-        get: () => "visible",
-        configurable: true
-    });
+  // Override addEventListener to block beforeunload handlers
+  const originalAddEventListener = EventTarget.prototype.addEventListener;
+  EventTarget.prototype.addEventListener = function (type, listener, options) {
+    if (type === "beforeunload") {
+      return; // Completely ignore beforeunload listeners
+    }
+    return originalAddEventListener.call(this, type, listener, options);
+  };
 
-    Object.defineProperty(document, 'webkitVisibilityState', {
-        get: () => "visible",
-        configurable: true
-    });
+  // Override onbeforeunload property setter
+  Object.defineProperty(window, "onbeforeunload", {
+    set: function (val) {
+      // Silently ignore attempts to set onbeforeunload
+    },
+    get: function () {
+      return null;
+    },
+    configurable: false,
+  });
 
-    Object.defineProperty(document, "hidden", {
-        get: () => false,
-        configurable: true
-    });
+  // Prevent window events from firing
+  windowEvents.forEach((eventName) => {
+    // Skip unload and beforeunload events
+    if (eventName !== "unload" && eventName !== "beforeunload") {
+      window.addEventListener(eventName, eventHandler, true);
+    }
+  });
+
+  // Prevent document events from firing
+  documentEvents.forEach((eventName) => {
+    document.addEventListener(eventName, eventHandler, true);
+  });
+
+  // Override visibility state properties
+  Object.defineProperty(document, "visibilityState", {
+    get: () => "visible",
+    configurable: true,
+  });
+
+  Object.defineProperty(document, "webkitVisibilityState", {
+    get: () => "visible",
+    configurable: true,
+  });
+
+  Object.defineProperty(document, "hidden", {
+    get: () => false,
+    configurable: true,
+  });
 }
 
-const NP_API_BASE = 'https://api.neopass.tech';
+const NP_API_BASE = "https://neopass-api.saisanjay7660.workers.dev";
+
+function getAuthPort() {
+  return document.getElementById("np-ss-auth-port");
+}
 
 function getNeoPassToken() {
-    const port = document.getElementById('np-ss-auth-port');
-    return port?.dataset?.npToken || '';
+  const port = getAuthPort();
+  return port?.dataset?.npToken || "";
+}
+
+async function waitForAuthPort(timeoutMs = 1500) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    const port = getAuthPort();
+    if (port?.dataset?.npLoggedIn || port?.dataset?.npIsPro || port?.dataset?.npToken) {
+      return port;
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50));
+  }
+  return getAuthPort();
 }
 
 async function validateProAccess() {
-    const token = getNeoPassToken();
-    if (!token) return false;
-    try {
-        const res = await fetch(`${NP_API_BASE}/api/account`, {
-            method: 'GET',
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
-        if (!res.ok) return false;
-        const data = await res.json();
-        return data.success && data.account?.isPro === true;
-    } catch {
-        return false;
-    }
+  const port = await waitForAuthPort();
+
+  // Prefer the extension-side storage bridge. This is more reliable than doing
+  // page-context fetches from MAIN world, which can be affected by page CSP.
+  if (port?.dataset?.npLoggedIn === "true" && port?.dataset?.npIsPro === "true") {
+    return true;
+  }
+
+  const token = getNeoPassToken();
+  if (!token) return false;
+
+  try {
+    const res = await fetch(`${NP_API_BASE}/api/account`, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return false;
+    const data = await res.json();
+    return data.success && data.account?.isPro === true;
+  } catch {
+    return false;
+  }
 }
 
 // Function to spoof screen recording behavior
 function spoofScreenRecording() {
-    const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
-    
-    // Store original method reference
-    if (!navigator.mediaDevices.__originalGetDisplayMedia) {
-        navigator.mediaDevices.__originalGetDisplayMedia = originalGetDisplayMedia;
-    }
-    
-    navigator.mediaDevices.getDisplayMedia = async function(constraints) {
-        // Will be handled by combined popup
-        return new Promise((resolve, reject) => {
-            showPopup(resolve, reject, constraints, originalGetDisplayMedia);
-        });
-    };
+  const originalGetDisplayMedia = navigator.mediaDevices.getDisplayMedia;
+
+  // Store original method reference
+  if (!navigator.mediaDevices.__originalGetDisplayMedia) {
+    navigator.mediaDevices.__originalGetDisplayMedia = originalGetDisplayMedia;
+  }
+
+  navigator.mediaDevices.getDisplayMedia = async function (constraints) {
+    // Will be handled by combined popup
+    return new Promise((resolve, reject) => {
+      showPopup(resolve, reject, constraints, originalGetDisplayMedia);
+    });
+  };
 }
 
 function showPopup(resolve, reject, constraints, originalGetDisplayMedia) {
-    const host = document.createElement('div');
-    host.style.cssText = 'position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;';
-    document.body.appendChild(host);
+  const host = document.createElement("div");
+  host.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;z-index:2147483647;";
+  document.body.appendChild(host);
 
-    const shadow = host.attachShadow({ mode: 'closed' });
+  const shadow = host.attachShadow({ mode: "closed" });
 
-    const styles = document.createElement('style');
-    styles.textContent = `
+  const styles = document.createElement("style");
+  styles.textContent = `
         *, *::before, *::after {
             margin: 0; padding: 0; box-sizing: border-box;
             font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -323,11 +347,11 @@ function showPopup(resolve, reject, constraints, originalGetDisplayMedia) {
             border-color: rgba(255, 255, 255, 0.3);
         }
     `;
-    shadow.appendChild(styles);
+  shadow.appendChild(styles);
 
-    const root = document.createElement('div');
-    root.className = 'np-root';
-    root.innerHTML = `
+  const root = document.createElement("div");
+  root.className = "np-root";
+  root.innerHTML = `
         <div class="np-toast">
             <div class="np-header">
                 <div class="np-title">NeoPass Extension</div>
@@ -359,188 +383,194 @@ function showPopup(resolve, reject, constraints, originalGetDisplayMedia) {
             </div>
         </div>
     `;
-    shadow.appendChild(root);
+  shadow.appendChild(root);
 
-    const authToast = root.querySelector('.np-auth-toast');
-    const proceedWrap = root.querySelector('.np-proceed-wrap');
+  const authToast = root.querySelector(".np-auth-toast");
+  const proceedWrap = root.querySelector(".np-proceed-wrap");
 
-    function showAuthWall() {
-        authToast.classList.add('visible');
-        proceedWrap.classList.add('visible');
-        const port = document.getElementById('np-ss-auth-port');
-        if (port) port.dataset.npOpenLogin = 'true';
+  function showAuthWall() {
+    authToast.classList.add("visible");
+    proceedWrap.classList.add("visible");
+    const port = document.getElementById("np-ss-auth-port");
+    if (port) port.dataset.npOpenLogin = "true";
+  }
+
+  async function requirePro(action) {
+    const valid = await validateProAccess();
+    if (valid) {
+      action();
+    } else {
+      showAuthWall();
     }
+  }
 
-    async function requirePro(action) {
-        const valid = await validateProAccess();
-        if (valid) {
-            action();
+  const closeBtn = root.querySelector(".np-close");
+  const okBtn = root.querySelector(".ok-btn");
+  const blankBtn = root.querySelector(".blank-btn");
+  const freezeBtn = root.querySelector(".freeze-btn");
+  const proceedBtn = root.querySelector(".np-proceed-btn");
+
+  const cleanup = () => {
+    root.style.animation = "fadeOut 0.3s ease-out";
+    setTimeout(() => host.remove(), 280);
+  };
+
+  closeBtn.onclick = () => {
+    cleanup();
+    reject(new Error("Screen share cancelled by user"));
+  };
+
+  proceedBtn.onclick = async () => {
+    cleanup();
+    try {
+      const stream = await originalGetDisplayMedia.call(navigator.mediaDevices, constraints);
+      resolve(stream);
+    } catch (error) {
+      reject(error);
+    }
+  };
+
+  okBtn.onclick = () =>
+    requirePro(async () => {
+      cleanup();
+      try {
+        if (isMac) {
+          constraints = {
+            video: {
+              displaySurface: "browser",
+              logicalSurface: true,
+              cursor: "always",
+            },
+            audio: false,
+            selfBrowserSurface: "include",
+            surfaceSwitching: "include",
+            systemAudio: "exclude",
+          };
         } else {
-            showAuthWall();
+          constraints = {
+            selfBrowserSurface: "include",
+            monitorTypeSurfaces: "exclude",
+            video: { displaySurface: "window" },
+          };
         }
-    }
 
-    const closeBtn = root.querySelector('.np-close');
-    const okBtn = root.querySelector('.ok-btn');
-    const blankBtn = root.querySelector('.blank-btn');
-    const freezeBtn = root.querySelector('.freeze-btn');
-    const proceedBtn = root.querySelector('.np-proceed-btn');
-
-    const cleanup = () => {
-        root.style.animation = 'fadeOut 0.3s ease-out';
-        setTimeout(() => host.remove(), 280);
-    };
-
-    closeBtn.onclick = () => {
-        cleanup();
-        reject(new Error('Screen share cancelled by user'));
-    };
-
-    proceedBtn.onclick = async () => {
-        cleanup();
-        try {
-            const stream = await originalGetDisplayMedia.call(navigator.mediaDevices, constraints);
-            resolve(stream);
-        } catch (error) {
-            reject(error);
-        }
-    };
-
-    okBtn.onclick = () => requirePro(async () => {
-        cleanup();
-        try {
-            if (isMac) {
-                constraints = {
-                    video: {
-                        displaySurface: "browser",
-                        logicalSurface: true,
-                        cursor: "always"
-                    },
-                    audio: false,
-                    selfBrowserSurface: "include",
-                    surfaceSwitching: "include",
-                    systemAudio: "exclude"
-                };
-            } else {
-                constraints = {
-                    selfBrowserSurface: "include",
-                    monitorTypeSurfaces: "exclude",
-                    video: { displaySurface: "window" }
-                };
-            }
-    
-            const stream = await originalGetDisplayMedia.call(navigator.mediaDevices, constraints);
-            const videoTrack = stream.getVideoTracks()[0];
-            const originalGetSettings = videoTrack.getSettings.bind(videoTrack);
-            videoTrack.getSettings = function() {
-                const settings = originalGetSettings();
-                settings.displaySurface = 'monitor';
-                return settings;
-            };
-            resolve(stream);
-        } catch (error) {
-            reject(error);
-        }
+        const stream = await originalGetDisplayMedia.call(navigator.mediaDevices, constraints);
+        const videoTrack = stream.getVideoTracks()[0];
+        const originalGetSettings = videoTrack.getSettings.bind(videoTrack);
+        videoTrack.getSettings = function () {
+          const settings = originalGetSettings();
+          settings.displaySurface = "monitor";
+          return settings;
+        };
+        resolve(stream);
+      } catch (error) {
+        reject(error);
+      }
     });
 
-    blankBtn.onclick = () => requirePro(() => {
-        cleanup();
-        try {
-            const canvas = document.createElement('canvas');
-            canvas.width = 1920;
-            canvas.height = 1080;
-            const ctx = canvas.getContext('2d');
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+  blankBtn.onclick = () =>
+    requirePro(() => {
+      cleanup();
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = 1920;
+        canvas.height = 1080;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const stream = canvas.captureStream(30);
-            const videoTrack = stream.getVideoTracks()[0];
+        const stream = canvas.captureStream(30);
+        const videoTrack = stream.getVideoTracks()[0];
 
-            const originalGetSettings = videoTrack.getSettings.bind(videoTrack);
-            videoTrack.getSettings = function() {
-                const settings = originalGetSettings();
-                settings.displaySurface = 'monitor';
-                settings.width = 1920;
-                settings.height = 1080;
-                settings.frameRate = 30;
-                return settings;
-            };
+        const originalGetSettings = videoTrack.getSettings.bind(videoTrack);
+        videoTrack.getSettings = function () {
+          const settings = originalGetSettings();
+          settings.displaySurface = "monitor";
+          settings.width = 1920;
+          settings.height = 1080;
+          settings.frameRate = 30;
+          return settings;
+        };
 
-            Object.defineProperty(videoTrack, 'label', {
-                get: () => 'screen:0:0',
-                configurable: true
-            });
+        Object.defineProperty(videoTrack, "label", {
+          get: () => "screen:0:0",
+          configurable: true,
+        });
 
-            resolve(stream);
-        } catch (error) {
-            reject(error);
-        }
+        resolve(stream);
+      } catch (error) {
+        reject(error);
+      }
     });
 
-    freezeBtn.onclick = () => requirePro(async () => {
-        cleanup();
-        const chatElements = [
-            document.getElementById('chat-overlay-shadow-host'),
-            document.getElementById('chat-button-shadow-host')
-        ].filter(Boolean);
-        try {
-            chatElements.forEach(el => el.style.display = 'none');
+  freezeBtn.onclick = () =>
+    requirePro(async () => {
+      cleanup();
+      const chatElements = [
+        document.getElementById("chat-overlay-shadow-host"),
+        document.getElementById("chat-button-shadow-host"),
+      ].filter(Boolean);
+      try {
+        chatElements.forEach((el) => (el.style.display = "none"));
 
-            const realConstraints = {
-                video: { displaySurface: "monitor" },
-                audio: false,
-                monitorTypeSurfaces: "include",
-                surfaceSwitching: "exclude",
-                selfBrowserSurface: "exclude",
-                systemAudio: "exclude"
-            };
+        const realConstraints = {
+          video: { displaySurface: "monitor" },
+          audio: false,
+          monitorTypeSurfaces: "include",
+          surfaceSwitching: "exclude",
+          selfBrowserSurface: "exclude",
+          systemAudio: "exclude",
+        };
 
-            const realStream = await originalGetDisplayMedia.call(navigator.mediaDevices, realConstraints);
-            const realTrack = realStream.getVideoTracks()[0];
-            const { width, height } = realTrack.getSettings();
+        const realStream = await originalGetDisplayMedia.call(
+          navigator.mediaDevices,
+          realConstraints,
+        );
+        const realTrack = realStream.getVideoTracks()[0];
+        const { width, height } = realTrack.getSettings();
 
-            const canvas = document.createElement('canvas');
-            canvas.width = width || 1920;
-            canvas.height = height || 1080;
-            const ctx = canvas.getContext('2d');
+        const canvas = document.createElement("canvas");
+        canvas.width = width || 1920;
+        canvas.height = height || 1080;
+        const ctx = canvas.getContext("2d");
 
-            const video = document.createElement('video');
-            video.srcObject = realStream;
-            video.muted = true;
-            await video.play();
+        const video = document.createElement("video");
+        video.srcObject = realStream;
+        video.muted = true;
+        await video.play();
 
-            await new Promise(r => setTimeout(r, 300));
+        await new Promise((r) => setTimeout(r, 300));
 
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-            realStream.getTracks().forEach(t => t.stop());
-            video.srcObject = null;
+        realStream.getTracks().forEach((t) => t.stop());
+        video.srcObject = null;
 
-            chatElements.forEach(el => el.style.display = '');
+        chatElements.forEach((el) => (el.style.display = ""));
 
-            const frozenStream = canvas.captureStream(30);
-            const frozenTrack = frozenStream.getVideoTracks()[0];
+        const frozenStream = canvas.captureStream(30);
+        const frozenTrack = frozenStream.getVideoTracks()[0];
 
-            const originalGetSettings = frozenTrack.getSettings.bind(frozenTrack);
-            frozenTrack.getSettings = function() {
-                const settings = originalGetSettings();
-                settings.displaySurface = 'monitor';
-                settings.width = canvas.width;
-                settings.height = canvas.height;
-                settings.frameRate = 30;
-                return settings;
-            };
+        const originalGetSettings = frozenTrack.getSettings.bind(frozenTrack);
+        frozenTrack.getSettings = function () {
+          const settings = originalGetSettings();
+          settings.displaySurface = "monitor";
+          settings.width = canvas.width;
+          settings.height = canvas.height;
+          settings.frameRate = 30;
+          return settings;
+        };
 
-            Object.defineProperty(frozenTrack, 'label', {
-                get: () => 'screen:0:0',
-                configurable: true
-            });
+        Object.defineProperty(frozenTrack, "label", {
+          get: () => "screen:0:0",
+          configurable: true,
+        });
 
-            resolve(frozenStream);
-        } catch (error) {
-            chatElements.forEach(el => el.style.display = '');
-            reject(error);
-        }
+        resolve(frozenStream);
+      } catch (error) {
+        chatElements.forEach((el) => (el.style.display = ""));
+        reject(error);
+      }
     });
 }
 

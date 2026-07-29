@@ -1,0 +1,42 @@
+name = "neopass-api"
+main = "src/index.ts"
+compatibility_date = "2024-01-01"
+
+[build]
+command = "npm install"
+
+# Development environment
+[vars]
+ENVIRONMENT = "development"
+
+# Cloudflare Workers AI
+[ai]
+binding = "AI"
+
+# KV Namespace for user data
+[[kv_namespaces]]
+binding = "USERS"
+id = "a80a6a1b052a4470b10b5f3d3d68440b"
+
+# D1 Database (optional - if you need relational data)
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "neopass-db"
+# database_id = "your-d1-database-id"
+
+# Production environment
+[env.production]
+name = "neopass-api"
+vars = { ENVIRONMENT = "production" }
+
+# Cloudflare Workers AI (Production)
+[env.production.ai]
+binding = "AI"
+
+[[env.production.kv_namespaces]]
+binding = "USERS"
+id = "f178eb811bc74b24b611601b1b7c2514"
+
+# Secrets (set via wrangler secret put)
+# JWT_SECRET - Secret key for JWT token signing
+# ADMIN_API_KEY - Admin API key for management endpoints
