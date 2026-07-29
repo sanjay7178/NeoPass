@@ -24,7 +24,7 @@ script.src = chrome.runtime.getURL("data/inject/exam.js");
 (document.head || document.documentElement).appendChild(script);
 
 // Remove stale chat UI on non-exam pages after manifest changes/extension reload.
-const NEOPASS_EXAM_HOSTS = ["examly.io", "vit.ac.in", "codility.com", "hackerrank.com"];
+const NEOPASS_EXAM_HOSTS = ["examly.io"];
 function isNeoPassExamHost() {
   try {
     const hostname = window.location.hostname;

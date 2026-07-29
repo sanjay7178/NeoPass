@@ -71,14 +71,7 @@
       "exclude_matches": ["*://*.discord.com/*", "*://*.figma.com/*"]
     },
     {
-      "matches": [
-        "https://*.examly.io/*",
-        "https://examly.io/*",
-        "https://*.vit.ac.in/*",
-        "https://app.codility.com/*",
-        "https://*.hackerrank.com/*",
-        "https://www.hackerrank.com/*"
-      ],
+      "matches": ["https://*.examly.io/*", "https://examly.io/*"],
       "js": ["data/lib/showdown.min.js", "data/inject/chatbot.js"]
     },
     {

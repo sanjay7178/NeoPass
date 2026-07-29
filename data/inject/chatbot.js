@@ -1,7 +1,7 @@
 if (typeof chrome === "undefined") {
 }
 
-const NEOPASS_CHAT_ALLOWED_HOSTS = ["examly.io", "vit.ac.in", "codility.com", "hackerrank.com"];
+const NEOPASS_CHAT_ALLOWED_HOSTS = ["examly.io"];
 
 function isNeoPassChatAllowedPage() {
   try {
