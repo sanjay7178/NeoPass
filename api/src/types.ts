@@ -98,7 +98,7 @@ export interface AIResponse {
 // Kimi K2.7 Code is used only for coding tasks where stronger reasoning/code generation matters.
 export const AI_MODELS = {
   mcq: "@cf/mistralai/mistral-small-3.1-24b-instruct",
-  coding: "@cf/moonshotai/kimi-k2.7-code",
+  coding: "@cf/qwen/qwen3-30b-a3b-fp8",
   chat: "@cf/mistralai/mistral-small-3.1-24b-instruct",
   nptel: "@cf/mistralai/mistral-small-3.1-24b-instruct",
   solve: "@cf/mistralai/mistral-small-3.1-24b-instruct",
